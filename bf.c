@@ -6,21 +6,33 @@
 //#define DEBUG
 //#define VERBOSE
 
+// DEBUG implies VERBOSE
 #ifdef DEBUG
 #define VERBOSE
 #endif
 
-// Array
+// Definitions
 #define DATA_TYPE int
-DATA_TYPE * a;
-
-// Array Size and Array Position
-unsigned s, p;
+#define MAX_ARRAY_SIZE 65535 // 2**16-1
 #define CHECK(X) if ((X) >= s) { fprintf(stderr, "Out of bounds: %u\n", X); return 4; }
 #define USAGE "usage: bf SIZE FILE\n"
 
+// Array
+DATA_TYPE * a;
+
+// Array Size 
+unsigned s;
+
+// Data Position
+unsigned p;
+
+// Program Position
+size_t pc = 0;
+
+// Program Value
+DATA_TYPE c;
+
 int main(int argc, char * argv[]) {
-    int c;
 
     // Arguments
     if (argc != 3) {
@@ -28,7 +40,7 @@ int main(int argc, char * argv[]) {
         return 1;
     }
     s = atol(argv[1]);
-    if (s == 0) {
+    if (s == 0 || s >= MAX_ARRAY_SIZE) {
         fprintf(stderr, "Invalid Array Size");
         return 5;
     }
@@ -43,21 +55,21 @@ int main(int argc, char * argv[]) {
         perror("Could not open file");
         return 2;
     }
-    while ((c = fgetc(file)) != EOF) {
-        CHECK(p) a[p++] = c;
+    int ch;
+    while ((ch = fgetc(file)) != EOF) {
+        CHECK(p) a[p++] = ch;
     }
     fclose(file);
     CHECK(p) a[p++] = '!';
 
     // Main Loop
-    size_t pc = 0;
     bool is_cmd;
     while (true) {
         CHECK(pc) 
         c = a[pc];
 
 #ifdef VERBOSE
-        is_cmd = c == '+' | c == '-' | c == '<' | c == '>' | c == '[' | c == ']' | c == '!';
+        is_cmd = p[pc] == '+' | c == '-' | c == '<' | c == '>' | c == '[' | c == ']' | c == '!';
         if (is_cmd)
             fprintf(stderr, "(a[%u] = '%c'; a[%u] = %d) =>", pc, a[pc], p, a[p]);
 #endif
@@ -119,7 +131,7 @@ int main(int argc, char * argv[]) {
 
 
 #ifdef VERBOSE
-        is_cmd = c == '+' | c == '-' | c == '<' | c == '>' | c == '[' | c == ']' | c == '!';
+        is_cmd = p[pc] == '+' | c == '-' | c == '<' | c == '>' | c == '[' | c == ']' | c == '!';
         if (is_cmd) {
             fprintf(stderr, "(a[%u] = '%c'; a[%u] = %d)"
 #ifndef DEBUG
